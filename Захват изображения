@@ -1,0 +1,42 @@
+import cv2
+import numpy as np
+
+# Функция для определения центра круглого маркера
+def detect_marker_center(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    _, thresh = cv2.threshold(blur, 100, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    for contour in contours:
+        if cv2.contourArea(contour) > 100:
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                cx = int(M["m10"] / M["m00"])
+                cy = int(M["m01"] / M["m00"])
+                return (cx, cy)
+
+    return None
+
+# Открываем камеру
+cap = cv2.VideoCapture(0)
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Находим центр маркера
+    marker_center = detect_marker_center(frame)
+
+    if marker_center is not None:
+        cx, cy = marker_center
+        cv2.circle(frame, (cx, cy), 10, (0, 0, 255), -1)  # Рисуем красный круг в центре маркера
+
+    cv2.imshow("Robot Tracking", frame)
+
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
