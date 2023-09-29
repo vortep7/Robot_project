@@ -1,0 +1,32 @@
+import cv2
+import numpy as np
+
+# Открываем камеру
+cap = cv2.VideoCapture(0)
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Преобразуем изображение в пространство цветов HSV
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    # Определяем диапазон желтого цвета в HSV
+    lower_yellow = np.array([20, 100, 100])
+    upper_yellow = np.array([30, 255, 255])
+
+    # Создаем бинарную маску, чтобы выделить желтые области
+    mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
+
+    # Применяем маску к исходному кадру
+    result = cv2.bitwise_and(frame, frame, mask=mask)
+
+    # Отображаем только желтые объекты
+    cv2.imshow("Yellow Objects", result)
+
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
